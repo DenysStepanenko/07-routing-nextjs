@@ -4,33 +4,11 @@
   width: 100%;
 }
 
-.header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 1rem;
-}
-
 .title {
   font-size: 1.5rem;
   font-weight: bold;
   color: #333;
-  margin: 0;
-  flex: 1;
-}
-
-.closeButton {
-  background: none;
-  border: none;
-  font-size: 1.5rem;
-  cursor: pointer;
-  color: #666;
-  padding: 0;
-  margin-left: 1rem;
-}
-
-.closeButton:hover {
-  color: #333;
+  margin-bottom: 1rem;
 }
 
 .meta {
