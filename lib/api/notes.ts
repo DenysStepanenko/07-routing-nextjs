@@ -3,6 +3,10 @@ import { Note, NewNoteData, NoteListResponse, Category } from '@/types/note';
 
 const api = axios.create({
   baseURL: 'https://next-docs-api.onrender.com',
+  headers: {
+    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
+    'Content-Type': 'application/json',
+  },
 });
 
 export const notesApi = {
