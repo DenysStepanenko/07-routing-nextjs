@@ -1,33 +1,42 @@
 import axios from 'axios';
-import { Note, NewNoteData, NoteListResponse } from '../types/note';
+import { Note, NewNoteData } from '../types/note';
+
+const API_BASE_URL = 'https://notehub-api.vercel.app/api';
+const token = process.env.NEXT_PUBLIC_NOTEHUB_TOKEN;
 
 const api = axios.create({
-  baseURL: 'https://next-docs-api.onrender.com',
+  baseURL: API_BASE_URL,
   headers: {
-    'Authorization': `Bearer ${process.env.NEXT_PUBLIC_NOTEHUB_TOKEN}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
   },
 });
 
-export const getNotes = async (search: string = '', page: number = 1, perPage: number = 12): Promise<NoteListResponse> => {
-  const response = await api.get<NoteListResponse>('/notes', {
-    params: { search, page, perPage }
+export const fetchNotes = async (
+  query: string = '',
+  page: number = 1,
+  perPage: number = 12
+): Promise<{ notes: Note[]; totalPages: number }> => {
+  const response = await api.get('/notes', {
+    params: {
+      query,
+      page,
+      perPage,
+    },
   });
   return response.data;
 };
 
-export const getSingleNote = async (id: string): Promise<Note> => {
-  const response = await api.get<Note>(`/notes/${id}`);
+export const fetchNoteById = async (id: number): Promise<Note> => {
+  const response = await api.get(`/notes/${id}`);
   return response.data;
 };
 
 export const createNote = async (noteData: NewNoteData): Promise<Note> => {
-  const response = await api.post<Note>('/notes', noteData);
+  const response = await api.post('/notes', noteData);
   return response.data;
 };
 
-export const deleteNote = async (id: string): Promise<Note> => {
-  const response = await api.delete<Note>(`/notes/${id}`);
-  return response.data;
+export const deleteNote = async (id: number): Promise<void> => {
+  await api.delete(`/notes/${id}`);
 };
 
