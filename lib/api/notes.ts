@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Note, NewNoteData, NoteListResponse, Category } from '@/types/note';
+import { Note, NewNoteData, NoteListResponse, Category, Tag } from '@/types/note';
 
 const api = axios.create({
   baseURL: 'https://next-docs-api.onrender.com',
@@ -18,10 +18,10 @@ export const notesApi = {
     return response.data;
   },
 
-  // Получить заметки по категории
-  getNotesByCategory: async (categoryId: string, search: string = '', page: number = 1, perPage: number = 12): Promise<NoteListResponse> => {
+  // Получить заметки по тегу
+  getNotesByTag: async (tag: string, search: string = '', page: number = 1, perPage: number = 12): Promise<NoteListResponse> => {
     const response = await api.get<NoteListResponse>('/notes', {
-      params: { categoryId, search, page, perPage }
+      params: { tag, search, page, perPage }
     });
     return response.data;
   },
@@ -41,6 +41,12 @@ export const notesApi = {
   // Удалить заметку
   deleteNote: async (id: string): Promise<Note> => {
     const response = await api.delete<Note>(`/notes/${id}`);
+    return response.data;
+  },
+
+  // Получить все теги
+  getTags: async (): Promise<Tag[]> => {
+    const response = await api.get<Tag[]>('/tags');
     return response.data;
   },
 

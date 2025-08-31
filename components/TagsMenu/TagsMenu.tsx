@@ -9,9 +9,9 @@ import css from './TagsMenu.module.css';
 export default function TagsMenu() {
   const [isOpen, setIsOpen] = useState(false);
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ['categories'],
-    queryFn: notesApi.getCategories,
+  const { data: tags = [] } = useQuery({
+    queryKey: ['tags'],
+    queryFn: notesApi.getTags,
   });
 
   return (
@@ -33,14 +33,14 @@ export default function TagsMenu() {
               All notes
             </Link>
           </li>
-          {categories.map((category) => (
-            <li key={category.id} className={css.menuItem}>
+          {tags.map((tag) => (
+            <li key={tag.name} className={css.menuItem}>
               <Link 
-                href={`/notes/filter/${category.id}`} 
+                href={`/notes/filter/${tag.name}`} 
                 className={css.menuLink}
                 onClick={() => setIsOpen(false)}
               >
-                {category.name}
+                {tag.name} ({tag.count})
               </Link>
             </li>
           ))}

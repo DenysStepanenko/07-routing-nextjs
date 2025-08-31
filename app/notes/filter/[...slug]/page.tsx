@@ -8,9 +8,9 @@ interface PageProps {
 
 export default async function NotesPage({ params }: PageProps) {
   const { slug } = await params;
-  const categoryId = slug?.[0];
-  const filterCategoryId = categoryId === 'All' ? undefined : categoryId;
+  const tag = slug?.[0];
+  const filterTag = tag === 'All' ? undefined : tag;
 
-  return <NotesClient categoryId={filterCategoryId} />;
+  return <NotesClient tag={filterTag} />;
 }
 

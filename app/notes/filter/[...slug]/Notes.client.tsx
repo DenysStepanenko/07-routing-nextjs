@@ -1,21 +1,47 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import Link from 'next/link';
+import { useDebounce } from 'use-debounce';
 import { notesApi } from '@/lib/api/notes';
+import NoteList from '@/components/NoteList/NoteList';
+import SearchBox from '@/components/SearchBox/SearchBox';
+import Pagination from '@/components/Pagination/Pagination';
+import Modal from '@/components/Modal/Modal';
+import NoteForm from '@/components/NoteForm/NoteForm';
 import css from './Notes.module.css';
 
 interface NotesClientProps {
-  categoryId?: string;
+  tag?: string;
 }
 
-export default function NotesClient({ categoryId }: NotesClientProps) {
+export default function NotesClient({ tag }: NotesClientProps) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+
   const { data, isLoading, error } = useQuery({
-    queryKey: ['notes', categoryId],
-    queryFn: () => categoryId 
-      ? notesApi.getNotesByCategory(categoryId)
-      : notesApi.getNotes(),
+    queryKey: ['notes', tag, debouncedSearchQuery, currentPage],
+    queryFn: () => {
+      if (tag) {
+        return notesApi.getNotesByTag(tag, debouncedSearchQuery, currentPage);
+      }
+      return notesApi.getNotes(debouncedSearchQuery, currentPage);
+    },
   });
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handleSearchChange = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Reset to first page on search
+  };
+
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   if (isLoading) {
     return <div className={css.loading}>Loading notes...</div>;
@@ -26,46 +52,56 @@ export default function NotesClient({ categoryId }: NotesClientProps) {
   }
 
   const notes = data?.notes || [];
+  const totalPages = Math.ceil((data?.total || 0) / 12);
 
   return (
     <div className={css.container}>
       <div className={css.header}>
         <h1 className={css.title}>
-          {categoryId ? `Notes in category` : 'All Notes'}
+          {tag ? `Notes with tag "${tag}"` : 'All Notes'}
         </h1>
-        <p className={css.count}>
-          {notes.length} {notes.length === 1 ? 'note' : 'notes'}
-        </p>
+        <button className={css.createButton} onClick={openModal}>
+          Create Note
+        </button>
       </div>
 
-      {notes.length === 0 ? (
-        <div className={css.empty}>
-          <p>No notes found.</p>
-          <Link href="/notes/create" className={css.createLink}>
-            Create your first note
-          </Link>
-        </div>
-      ) : (
-        <div className={css.grid}>
-          {notes.map((note) => (
-            <Link
-              key={note.id}
-              href={`/notes/${note.id}`}
-              className={css.noteCard}
-            >
-              <h2 className={css.noteTitle}>{note.title}</h2>
-              <p className={css.notePreview}>
-                {note.content.substring(0, 150)}
-                {note.content.length > 150 ? '...' : ''}
-              </p>
-              <div className={css.noteMeta}>
-                <span className={css.noteDate}>
-                  {new Date(note.createdAt).toLocaleDateString()}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+      <SearchBox 
+        value={searchQuery}
+        onChange={handleSearchChange}
+        placeholder="Search notes..."
+      />
+
+      <div className={css.content}>
+        <p className={css.count}>
+          {data?.total || 0} {(data?.total || 0) === 1 ? 'note' : 'notes'} found
+        </p>
+
+        {notes.length === 0 ? (
+          <div className={css.empty}>
+            <p>No notes found.</p>
+            <button className={css.createLink} onClick={openModal}>
+              Create your first note
+            </button>
+          </div>
+        ) : (
+          <>
+            <NoteList notes={notes} />
+            
+            {totalPages > 1 && (
+              <Pagination
+                page={currentPage}
+                totalPages={totalPages}
+                changePage={handlePageChange}
+              />
+            )}
+          </>
+        )}
+      </div>
+
+      {isModalOpen && (
+        <Modal onClose={closeModal}>
+          <NoteForm onClose={closeModal} />
+        </Modal>
       )}
     </div>
   );
